@@ -1,0 +1,10 @@
+langchain
+langchain-core 
+langchain-huggingface
+langchain-community
+langchain_experimental
+youtube-transcript-api
+python-dotenv
+faiss-cpu
+sentence-transformers
+flask

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube RAG Chatbot</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1e2f, #3b3b5a);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #ff4c4c;
+            text-shadow: 1px 1px 5px #000;
+            margin-bottom: 30px;
+        }
+
+        input, textarea {
+            width: 80%;
+            max-width: 700px;
+            padding: 12px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+        }
+
+        input:focus, textarea:focus {
+            box-shadow: 0 0 10px #ff4c4c;
+        }
+
+        button {
+            background: linear-gradient(90deg, #ff4c4c, #ff9f4c);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+        }
+
+        #ans {
+            margin-top: 30px;
+            width: 80%;
+            max-width: 700px;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            white-space: pre-wrap;
+            text-align: left;
+            margin-left: auto;
+            margin-right: auto;
+            min-height: 100px;
+        }
+
+        #video-container {
+            margin-bottom: 20px;
+        }
+
+        iframe {
+            width: 80%;
+            max-width: 700px;
+            height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+<h2>🎥 YouTube RAG Chatbot</h2>
+
+<input id="video" placeholder="Paste YouTube URL here"><br>
+<button onclick="loadVideo()">Load Video</button>
+
+<div id="video-container">
+    <iframe id="ytplayer" src="" frameborder="0" allowfullscreen></iframe>
+</div>
+
+<textarea id="q" placeholder="Ask a question about the video"></textarea><br>
+<button onclick="ask()">Ask Question</button>
+
+<pre id="ans">Your answer will appear here...</pre>
+
+<script>
+// Load video in iframe
+function loadVideo(){
+    const url = document.getElementById("video").value;
+    const videoId = extractVideoID(url);
+    if(!videoId){
+        alert("❌ Invalid YouTube URL");
+        return;
+    }
+    const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    document.getElementById("ytplayer").src = embedUrl;
+}
+
+// Extract video ID from URL
+function extractVideoID(url){
+    const regExp = /(?:v=|\/)([0-9A-Za-z_-]{11}).*/;
+    const match = url.match(regExp);
+    return match ? match[1] : null;
+}
+
+// Ask question to backend
+function ask(){
+    const video_url = document.getElementById("video").value;
+    const question = document.getElementById("q").value;
+
+    if(!video_url || !question){
+        alert("Please enter both video URL and question");
+        return;
+    }
+
+    document.getElementById("ans").innerText = "⏳ Processing...";
+
+    fetch("/chat",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ video_url, question })
+    })
+    .then(r => r.json())
+    .then(d => document.getElementById("ans").innerText = d.answer)
+    .catch(err => document.getElementById("ans").innerText = "❌ Error occurred")
+}
+</script>
+
+</body>
+</html>
