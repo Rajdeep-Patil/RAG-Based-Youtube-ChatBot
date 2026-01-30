@@ -1,10 +1,14 @@
 import sys
+import os
 from youtube_transcript_api import YouTubeTranscriptApi
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain_pinecone import PineconeVectorStore
+from pinecone import Pinecone
 from dotenv import load_dotenv
 from Youtube_Chat_Bot.exception.exception import YoutubeChatBotException
+
+load_dotenv()
 
 
 class indexing:
@@ -18,6 +22,7 @@ class indexing:
         yt_api = YouTubeTranscriptApi()
         try:
             video_transcript = yt_api.fetch(video_id=self.video_id,languages=['en','hi'])
+
             transcript = " ".join(text.text for text in video_transcript)
             return transcript
         except Exception as e:
@@ -29,15 +34,33 @@ class indexing:
             chunk_overlap=self.chunk_overlap
         )
         transcript = self.youtube_transcript()
-        return splitter.create_documents([transcript])
+        return splitter.create_documents(
+            [transcript],
+            metadatas=[{"video_id": self.video_id}]
+        )
 
-    def embedding_model(self):
-        try:
-            return HuggingFaceEmbeddings(model_name=self.embedding_model_name)
-        except Exception as e:
-            raise YoutubeChatBotException(e, sys)
+    def get_vectorstore(self):
+        # ✅ Pinecone SDK client
+        pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
+
+        # ✅ Connect to existing index
+        index = pc.Index(os.environ["PINECONE_INDEX_NAME"])
+
+        embeddings = HuggingFaceEmbeddings(
+            model_name=self.embedding_model_name
+        )
+
+        # ✅ Correct LangChain wrapper
+        vectorstore = PineconeVectorStore(
+            index=index,
+            embedding=embeddings,
+            text_key="page_content"
+        )
+
+        return vectorstore
 
     def vector_store(self):
-        embeddings = self.embedding_model()
         docs = self.text_splitter()
-        return FAISS.from_documents(docs, embeddings)
+        vectorstore = self.get_vectorstore()
+        vectorstore.add_documents(docs)
+        return vectorstore

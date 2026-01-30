@@ -50,7 +50,10 @@ class generation:
         prompt = PromptTemplate(
             template="""
                     Answer ONLY using the transcript context.
-                    If the answer is not in the transcript, say "I don't know".
+                    If the answer is not in the transcript, say "I don't know, and also explain the reason".
+                    If question ask in english so give the answer in english or
+                    If question ask in hindi so give the answer in hindi or
+                    If question ask in hinglish so give the answer in hinglish
 
                     Chat History:
                     {history}

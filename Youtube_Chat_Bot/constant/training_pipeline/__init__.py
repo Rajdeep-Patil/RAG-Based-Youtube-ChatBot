@@ -7,11 +7,12 @@ chunk_overlap = 200
 
 # Embedding Model
 embedding_model_name = 'sentence-transformers/all-MiniLM-L6-v2'
+text_key = 'text'
 
 # Retriever
 search_type='similarity'
-search_kwargs={'k':4}
+search_kwargs={'k':2}
 
 # Chatmodel
-repo_id='meta-llama/Llama-2-7b-chat-hf'
+repo_id='deepseek-ai/DeepSeek-V3.2-Exp'
 task='text-generation'
