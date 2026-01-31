@@ -1,3 +1,6 @@
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 import sys
 import os
 from youtube_transcript_api import YouTubeTranscriptApi

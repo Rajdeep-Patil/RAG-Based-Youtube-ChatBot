@@ -12,3 +12,4 @@ gunicorn
 pinecone-client
 pinecone
 langchain-pinecone
+streamlit
