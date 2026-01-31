@@ -4,11 +4,7 @@ from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from langchain_core.runnables import (
-    RunnableParallel,
-    RunnableLambda,
-    RunnablePassthrough
-)
+from langchain_core.runnables import RunnableParallel,RunnableLambda,RunnablePassthrough
 
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 
@@ -23,25 +19,22 @@ class generation:
         self.repo_id = repo_id
         self.task = task
 
-        # System message (always preserved)
+        
         self.memory = [
             SystemMessage(
                 content="You are a helpful assistant. Answer only from the transcript."
             )
         ]
 
-    # ---------------- RETRIEVER ----------------
     def retriever(self):
         return self.vector_store.as_retriever(
             search_type=self.search_type,
             search_kwargs=self.search_kwargs
         )
 
-    # ---------------- FORMAT DOCS ----------------
     def format_docs(self, docs):
         return "\n\n".join(doc.page_content for doc in docs)
 
-    # ---------------- FORMAT HISTORY ----------------
     def format_history(self):
         history = ""
         for msg in self.memory:
@@ -51,23 +44,21 @@ class generation:
                 history += f"Assistant: {msg.content}\n"
         return history
 
-    # ---------------- MEMORY LIMIT ----------------
     def trim_memory(self, max_turns=10):
         """
         Keeps only last `max_turns` human-ai conversations.
         SystemMessage is always preserved.
         """
         system_msg = self.memory[0]
-        convo = self.memory[1:]  # remove system message
+        convo = self.memory[1:]  
 
-        max_messages = max_turns * 2  # Human + AI
+        max_messages = max_turns * 2  
 
         if len(convo) > max_messages:
             convo = convo[-max_messages:]
 
         self.memory = [system_msg] + convo
 
-    # ---------------- CHAIN ----------------
     def chain(self):
         llm = HuggingFaceEndpoint(
             repo_id=self.repo_id,
@@ -79,21 +70,29 @@ class generation:
 
         prompt = PromptTemplate(
             template="""
-                Answer ONLY using the transcript context.
-                If the answer is not in the transcript, say "I don't know, and also explain the reason".
-                If the question is in English, answer in English.
-                If the question is in Hindi, answer in Hindi.
-                If the question is in Hinglish, answer in Hinglish.
+                You are a helpful assistant that answers questions strictly using the provided transcript.
 
-                Chat History:
-                {history}
+                    Rules:
+                    1. Use ONLY the information present in the Transcript.
+                    2. Do NOT use outside knowledge or make assumptions.
+                    3. If the answer is NOT present in the transcript, respond with:
+                    "I don't know." 
+                    Then briefly explain why the transcript does not contain this information.
+                    4. Match the language of the user's question:
+                    - English → English
+                    - Hindi → Hindi
+                    - Hinglish → Hinglish
+                    5. Keep answers clear, concise, and factual.
 
-                Transcript:
-                {context}
+                    Chat History:
+                    {history}
 
-                Question:
-                {question}
-                """,
+                    Transcript Context:
+                    {context}
+
+                    User Question:
+                    {question}""",
+                    
             input_variables=["history", "context", "question"]
         )
 
@@ -105,26 +104,19 @@ class generation:
 
         return parallel | prompt | model | StrOutputParser()
 
-    # ---------------- CHAT ----------------
     def chat(self, question):
-        # Handle commands (optional but safe)
         if question.lower().strip() in ["exit", "quit", "clear"]:
             self.memory = [self.memory[0]]
             return "🔄 Memory cleared."
 
-        # Add user message
         self.memory.append(HumanMessage(content=question))
 
-        # Trim before LLM call
         self.trim_memory(max_turns=10)
 
-        # Get answer
         answer = self.chain().invoke(question)
 
-        # Add assistant message
         self.memory.append(AIMessage(content=answer))
 
-        # Trim after LLM call
         self.trim_memory(max_turns=10)
 
         return answer

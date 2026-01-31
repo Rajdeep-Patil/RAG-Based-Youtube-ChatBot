@@ -1,6 +1,3 @@
-import os
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
 import sys
 import os
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -43,17 +40,17 @@ class indexing:
         )
 
     def get_vectorstore(self):
-        # ✅ Pinecone SDK client
+        
         pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 
-        # ✅ Connect to existing index
+        
         index = pc.Index(os.environ["PINECONE_INDEX_NAME"])
 
         embeddings = HuggingFaceEmbeddings(
             model_name=self.embedding_model_name
         )
 
-        # ✅ Correct LangChain wrapper
+        
         vectorstore = PineconeVectorStore(
             index=index,
             embedding=embeddings,
