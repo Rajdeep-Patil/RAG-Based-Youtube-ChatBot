@@ -11,7 +11,7 @@ text_key = 'text'
 
 # Retriever
 search_type='similarity'
-search_kwargs={'k':2}
+search_kwargs={'k':4}
 
 # Chatmodel
 repo_id='deepseek-ai/DeepSeek-V3.2-Exp'
