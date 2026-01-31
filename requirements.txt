@@ -9,7 +9,6 @@ faiss-cpu
 sentence-transformers
 flask
 gunicorn
-pinecone-client
 pinecone
 langchain-pinecone
 streamlit
