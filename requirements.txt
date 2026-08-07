@@ -12,3 +12,4 @@ gunicorn
 pinecone
 langchain-pinecone
 streamlit
+langchain-groq
