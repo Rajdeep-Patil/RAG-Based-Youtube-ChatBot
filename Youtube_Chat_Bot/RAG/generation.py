@@ -21,10 +21,7 @@ class generation:
     def retriever(self):
         logging.info(f"Creating retriever with search_type={self.search_type} and search_kwargs={self.search_kwargs}")
         try:
-            retriever = self.vector_store.as_retriever(
-                search_type=self.search_type,
-                search_kwargs=self.search_kwargs
-            )
+            retriever = self.vector_store.as_retriever(search_type=self.search_type,search_kwargs=self.search_kwargs)
             logging.info("Retriever created successfully")
             return retriever
         except Exception as e:
@@ -38,11 +35,7 @@ class generation:
     def chain(self):
         logging.info("Building HuggingFace chain...")
         try:
-            llm = HuggingFaceEndpoint(
-                repo_id=self.repo_id,
-                task=self.task,
-                huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN")
-            )
+            llm = HuggingFaceEndpoint(repo_id=self.repo_id,task=self.task,huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"))
 
             model = ChatHuggingFace(llm=llm)
             logging.info("HuggingFace model loaded successfully")

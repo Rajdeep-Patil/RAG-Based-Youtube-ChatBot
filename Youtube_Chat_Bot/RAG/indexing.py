@@ -10,8 +10,6 @@ from Youtube_Chat_Bot.exception.exception import YoutubeChatBotException
 from Youtube_Chat_Bot.logging.logger import logging
 
 load_dotenv()
-
-
 class indexing:
     def __init__(self, video_id, chunk_size, chunk_overlap, embedding_model_name):
         self.video_id = video_id
@@ -26,10 +24,7 @@ class indexing:
         yt_api = YouTubeTranscriptApi()
 
         try:
-            video_transcript = yt_api.fetch(
-                video_id=self.video_id,
-                languages=['en', 'hi']
-            )
+            video_transcript = yt_api.fetch(video_id=self.video_id,languages=['en', 'hi'])
 
             transcript = " ".join(text.text for text in video_transcript)
             logging.info(f"Transcript fetched successfully | Length: {len(transcript)} chars")
@@ -43,16 +38,10 @@ class indexing:
     def text_splitter(self):
         logging.info("Splitting transcript into chunks...")
 
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap
-        )
+        splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size,chunk_overlap=self.chunk_overlap)
 
         transcript = self.youtube_transcript()
-        docs = splitter.create_documents(
-            [transcript],
-            metadatas=[{"video_id": self.video_id}]
-        )
+        docs = splitter.create_documents([transcript],metadatas=[{"video_id": self.video_id}])
 
         logging.info(f"Text split completed | Total chunks: {len(docs)}")
         return docs
@@ -66,17 +55,11 @@ class indexing:
 
             logging.info("Pinecone connection successful")
 
-            embeddings = HuggingFaceEmbeddings(
-                model_name=self.embedding_model_name
-            )
+            embeddings = HuggingFaceEmbeddings(model_name=self.embedding_model_name)
 
             logging.info(f"Embedding model loaded: {self.embedding_model_name}")
 
-            vectorstore = PineconeVectorStore(
-                index=index,
-                embedding=embeddings,
-                text_key="page_content"
-            )
+            vectorstore = PineconeVectorStore(index=index,embedding=embeddings,text_key="page_content")
 
             return vectorstore
 
