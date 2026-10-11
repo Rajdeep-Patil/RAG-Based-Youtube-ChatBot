@@ -14,5 +14,5 @@ search_type='similarity'
 search_kwargs={'k':4}
 
 # Chatmodel
-repo_id='deepseek-ai/DeepSeek-V3.2-Exp'
+repo_id='meta-llama/Llama-3.2-3B-Instruct'
 task='text-generation'
